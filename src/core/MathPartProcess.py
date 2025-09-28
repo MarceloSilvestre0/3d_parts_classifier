@@ -7,10 +7,29 @@ class MathPartProcess:
     def __init__(self):
         self.mesh = None
         self.data = {}
+    
+    def execute_render(self, directory:str, return_dir:str, views):
+        #Extrai e retorna o dicionário {file_name: file_path}
+        files = self.__list_file(directory)
+
+        #Captura o dicionário e itera a função 'render_part'.
+        for file_name, file_path in files.items():
+            self.render_part(file_path, return_dir, file_name, views=views)
+            self.calculate(file_path)
+
+    # '''
+    # Executa a extração do bounding box dos STLs
+    # '''
+    # def extract_bounding(self, file_path:str):
+    #     files = self.__list_file(file_path)
+
+    #     for file_name, file_path in files.items():
+    #         self.calculate(file_path)
 
     '''
     Esta função irá retornar o dicionário com os caminhos das peças dentro do diretório
     '''
+
     def __list_file(self, directory:str) -> dict:
         file_dict = {}
         for file in os.listdir(directory):
@@ -24,18 +43,26 @@ class MathPartProcess:
     Esta função irá ler os caminhos listados na função anterior e salvará as fotos extraídas no diretório de avaliação
     '''
 
-    def render_part(self, stl_file, return_dir, file_name, views=12):
+    def render_part(self, stl_file, return_dir, file_name, views):
 
-        self.mesh = o3d.io.read_triangle_mesh(stl_file)
-        self.mesh.compute_vertex_normals()
+        try:
+            self.mesh = o3d.io.read_triangle_mesh(stl_file)
+            self.mesh.compute_vertex_normals()
+            
+        except(IsADirectoryError, FileNotFoundError) as e:
+            print(f"Caminho inválido ou arquivo inexistente: {e}")
+            return None
+        
+        except Exception as e:
+            print(f"Erro ao ler o arquivo: {e}")
 
         vis = o3d.visualization.Visualizer()
         vis.create_window(visible=False)
         vis.add_geometry(self.mesh)
 
-        for i, angle in enumerate(range(0, 360, int(360/views))):
+        for i, angle in enumerate(range(270, 360, int(360/views))):
             ctr = vis.get_view_control()
-            ctr.rotate(0.0, angle)
+            ctr.rotate(0.0, -angle)
             vis.poll_events()
             vis.update_renderer()
 
@@ -58,7 +85,7 @@ class MathPartProcess:
 
         
         vis.destroy_window()
-        print(f"{views} imagens geradas para {file_name}")
+
     
     '''Função para calcular o bounding box do arquivo 3D
     Este método irá receber o caminho o arquivo 3D (.stl), irá processar suas malhas e retornar os valores,
@@ -84,4 +111,4 @@ class MathPartProcess:
             "Altura (Y)": round(float(dimensions[1]),2),
             "Comprimento (Z)": round(float(dimensions[2]),2)
         }
-        return self.data
+        return print(self.data), self.data
