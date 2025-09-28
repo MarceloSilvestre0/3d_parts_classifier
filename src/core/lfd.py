@@ -2,6 +2,7 @@ import os
 import open3d as o3d
 import cv2
 
+
 def list_file(dir):
     file_dict = {}
     for file in os.listdir(dir):

@@ -1,28 +1,87 @@
 import open3d as o3d
 import numpy as np
+import cv2
+import os
 
-def bouding_box(file_path) -> dict:
-    # Origem Open3d -> Carrega a malha
-    mesh = o3d.io.read_triangle_mesh(file_path)
+class MathPartProcess:
+    def __init__(self):
+        self.mesh = None
+        self.data = {}
 
-    # Origem Open3d -> Bounding box
-    bounding_box = mesh.get_axis_aligned_bounding_box()
+    '''
+    Esta função irá retornar o dicionário com os caminhos das peças dentro do diretório
+    '''
+    def __list_file(self, directory:str) -> dict:
+        file_dict = {}
+        for file in os.listdir(directory):
+            if file.endswith(".stl"):
+                file_name = os.path.splitext(file)[0]
+                file_path = os.path.abspath(os.path.join(directory, file))
+                file_dict[file_name] = file_path
+        return file_dict
+        
+    '''
+    Esta função irá ler os caminhos listados na função anterior e salvará as fotos extraídas no diretório de avaliação
+    '''
 
-    # Origem Open3d -> Calcula as dimensões
-    min_bound = bounding_box.get_min_bound()
-    max_bound = bounding_box.get_max_bound()
-    dimensoes = np.array(max_bound) - np.array(min_bound)
+    def render_part(self, stl_file, return_dir, file_name, views=12):
 
-    #Retorna um dicionário com as medidas
-    data = {
-        "Largura (X)": round(float(dimensoes[0]), 2),
-        "Altura (Y)": round(float(dimensoes[1]),2),
-        "Comprimento (Z)": round(float(dimensoes[2]),2)
-    }
-    return data
+        self.mesh = o3d.io.read_triangle_mesh(stl_file)
+        self.mesh.compute_vertex_normals()
 
-file_path = r"C:\Users\Marcelo Silvestre\Documents\1.Estudos\1.Pos_Graduacao\TCC\TCC\packing_simulator\src\data\XADREZ_REF\bishop_ref.stl"
-#C:\Users\Marcelo Silvestre\Documents\1.Estudos\1.Pos_Graduacao\TCC\TCC\packing_simulator\src\data\XADREZ_REF\bishop_ref.stl
-lista = bouding_box(file_path)
+        vis = o3d.visualization.Visualizer()
+        vis.create_window(visible=False)
+        vis.add_geometry(self.mesh)
 
-print(lista)
+        for i, angle in enumerate(range(0, 360, int(360/views))):
+            ctr = vis.get_view_control()
+            ctr.rotate(0.0, angle)
+            vis.poll_events()
+            vis.update_renderer()
+
+            img_path = os.path.join(return_dir, f"{file_name}_{i}.png")
+
+            vis.capture_screen_image(img_path)
+
+            img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+
+            if img is None:
+                print(f"Erro ao ler {img_path}")
+                continue
+
+            img_norm = cv2.equalizeHist(img)
+            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
+            img_clahe = clahe.apply(img_norm)
+
+            cv2.imwrite(os.path.join(return_dir, f"img_norm_{file_name}_{i}.png"), img_norm)
+            cv2.imwrite(os.path.join(return_dir, f"img_clahe_{file_name}_{i}.png"), img_clahe)
+
+        
+        vis.destroy_window()
+        print(f"{views} imagens geradas para {file_name}")
+    
+    '''Função para calcular o bounding box do arquivo 3D
+    Este método irá receber o caminho o arquivo 3D (.stl), irá processar suas malhas e retornar os valores,
+    em mm dos eixos delimitadores do produto. Dessa forma, é possivel calcular o volume do ocupação da peça    
+    '''
+    def calculate(self, file_path:str) -> dict:
+        try:
+            self.mesh = o3d.io.read_triangle_mesh(file_path)
+        except(IsADirectoryError, FileNotFoundError) as e:
+            print(f"Caminho inválido ou arquivo inexistente: {e}")
+            return None
+        
+        except Exception as e:
+            print(f"Erro ao ler o arquivo: {e}")
+
+        bounding_box = self.mesh.get_axis_aligned_bounding_box()
+        min_bound = bounding_box.get_min_bound()
+        max_bound = bounding_box.get_max_bound()
+        dimensions = np.array(max_bound) - np.array(min_bound)
+
+        self.data = {
+            "Largura (X)": round(float(dimensions[0]), 2),
+            "Altura (Y)": round(float(dimensions[1]),2),
+            "Comprimento (Z)": round(float(dimensions[2]),2)
+        }
+        return self.data
