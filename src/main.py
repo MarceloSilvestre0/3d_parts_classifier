@@ -11,5 +11,4 @@ output_directory = r"C:\Users\Marcelo Silvestre\Documents\1.Estudos\1.Pos_Gradua
 input_directory = r"C:\Users\Marcelo Silvestre\Documents\1.Estudos\1.Pos_Graduacao\TCC\TCC\XADREZ_REF"
 views = 2
 
-print("rodando")
 processador.execute_render(input_directory, output_directory, views)

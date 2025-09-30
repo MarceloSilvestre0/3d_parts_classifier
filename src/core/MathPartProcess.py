@@ -17,15 +17,6 @@ class MathPartProcess:
             self.render_part(file_path, return_dir, file_name, views=views)
             self.calculate(file_path)
 
-    # '''
-    # Executa a extração do bounding box dos STLs
-    # '''
-    # def extract_bounding(self, file_path:str):
-    #     files = self.__list_file(file_path)
-
-    #     for file_name, file_path in files.items():
-    #         self.calculate(file_path)
-
     '''
     Esta função irá retornar o dicionário com os caminhos das peças dentro do diretório
     '''
@@ -76,14 +67,13 @@ class MathPartProcess:
                 print(f"Erro ao ler {img_path}")
                 continue
 
-            img_norm = cv2.equalizeHist(img)
-            clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
-            img_clahe = clahe.apply(img_norm)
+            # img_norm = cv2.equalizeHist(img)
+            # clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(4,4))
+            # img_clahe = clahe.apply(img_norm)
 
-            cv2.imwrite(os.path.join(return_dir, f"img_norm_{file_name}_{i}.png"), img_norm)
-            cv2.imwrite(os.path.join(return_dir, f"img_clahe_{file_name}_{i}.png"), img_clahe)
+            # # cv2.imwrite(os.path.join(return_dir, f"img_norm_{file_name}_{i}.png"), img_norm)
+            # cv2.imwrite(os.path.join(return_dir, f"img_clahe_{file_name}_{i}.png"), img_clahe)
 
-        
         vis.destroy_window()
 
     
@@ -111,4 +101,4 @@ class MathPartProcess:
             "Altura (Y)": round(float(dimensions[1]),2),
             "Comprimento (Z)": round(float(dimensions[2]),2)
         }
-        return print(self.data), self.data
+        return self.data
