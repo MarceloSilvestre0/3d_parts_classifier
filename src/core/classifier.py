@@ -11,7 +11,7 @@ class Builder():
                  batch_size: int = 32, epochs: int = 100,
                  DATA_VALIDATION_DIR: str = None, DATA_TRAINING_DIR: str = None,
                  model:str = "CNN_model.h5", MODEL_DIR:str = None):
-        self.img_widht = img_width
+        self.img_width = img_width
         self.img_height = img_height
         self.batch_size = batch_size
         self.num_epochs = epochs
@@ -26,6 +26,7 @@ class Builder():
     '''
     def train_process(self, rescale = 1/255.0,
                       rotation_range = 30,
+                 
                       zoom_range = 0.4,
                       horizontal_flip = True,
                       shear_range = 0.4):
@@ -37,9 +38,22 @@ class Builder():
                                            shear_range = shear_range)
         
         self.train_generator = train_datagen.flow_from_directory(self.train_dir,
-                                                            self.batchSize,
+                                                            batch_size = self.batch_size,
                                                             class_mode = 'categorical',
-                                                            target_size = (self.img_height, self.img_widht))
+                                                            target_size = (self.img_height, self.img_width))
+    
+    def validation_process(self, rescale = 1/255.0,
+                           class_mode = 'categorical'):
+        
+        val_datagen = ImageDataGenerator(rescale = rescale)
+
+        self.val_generator = val_datagen.flow_from_directory(self.val_dir,
+                                                        batch_size = self.batch_size,
+                                                        class_mode = class_mode,
+                                                        target_size = (self.img_height, self.img_width))
     
 
+    def model(self):
+        model_name = self.model_save_path + self.model_name
+        checkpoint_model = ModelCheckpoint(model_name, monitor = 'val_accuracy', verbose = 1, save_best_only = True)
         
