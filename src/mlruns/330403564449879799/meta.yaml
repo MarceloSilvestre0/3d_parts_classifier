@@ -1,0 +1,6 @@
+artifact_location: file:///C:/Users/Marcelo%20Silvestre/Documents/1.Estudos/1.Pos_Graduacao/TCC/TCC/3d_parts_classifier/src/mlruns/330403564449879799
+creation_time: 1759680482788
+experiment_id: '330403564449879799'
+last_update_time: 1759680482788
+lifecycle_stage: active
+name: 'Pipeline: Split, Train and Validation'

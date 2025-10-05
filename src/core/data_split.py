@@ -59,6 +59,7 @@ class DatasetSplitter:
             # copia arquivos de treino
             for f in train_files:
                 shutil.copy(f, os.path.join(training[class_name], os.path.basename(f)))
+                
             # copia arquivos de validação
             for f in val_files:
                 shutil.copy(f, os.path.join(validation[class_name], os.path.basename(f)))
