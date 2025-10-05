@@ -11,6 +11,7 @@ class MathPartProcess:
     def execute_render(self, directory:str, return_dir:str, views):
         #Extrai e retorna o dicionário {file_name: file_path}
         files = self.__list_file(directory)
+        print(directory)
 
         #Captura o dicionário e itera a função 'render_part'.
         for file_name, file_path in files.items():
