@@ -11,12 +11,16 @@ class MathPartProcess:
     def execute_render(self, directory:str, return_dir:str, views):
         #Extrai e retorna o dicionário {file_name: file_path}
         files = self.__list_file(directory)
+        bounding_list = []
         print(directory)
 
         #Captura o dicionário e itera a função 'render_part'.
         for file_name, file_path in files.items():
             self.render_part(file_path, return_dir, file_name, views=views)
-            self.calculate(file_path)
+            result = self.calculate(file_path)
+            bounding_list.append(result)
+        
+        return bounding_list
 
     '''
     Esta função irá retornar o dicionário com os caminhos das peças dentro do diretório
@@ -97,9 +101,14 @@ class MathPartProcess:
         max_bound = bounding_box.get_max_bound()
         dimensions = np.array(max_bound) - np.array(min_bound)
 
+        part_name = os.path.basename(file_path)
+
         self.data = {
+            "Nome": part_name,
             "Largura (X)": round(float(dimensions[0]), 2),
             "Altura (Y)": round(float(dimensions[1]),2),
             "Comprimento (Z)": round(float(dimensions[2]),2)
         }
         return self.data
+    
+

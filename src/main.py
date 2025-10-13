@@ -1,71 +1,51 @@
-import mlflow
-from core.data_split import DatasetSplitter
+''''
+Melhorias futuras:
+1. Criar uma função para coletar os dados de saída da classificação
+2. Criar uma função para subir os dados em um banco
+'''
+
+
 import os
 from dotenv import load_dotenv
 from core.MathPartProcess import MathPartProcess
 from core.classifier import STLPartClassifier
-from core.data_split import check_dir
+import pandas as pd
 
-#Carrega o Dotenv
+#Carrega as varivaies de ambiente
 load_dotenv()
 
-mlflow.set_experiment("Pipeline: Aplicando Transfer Learning")
+#Realiza a extração das imagens do arquivo 3D - LFD
+output_directory = os.getenv("OUTPUT_DIRECTORY")
+input_directory = os.getenv("INPUT_DIRECTORY")
 
-with mlflow.start_run():
-    #Realiza a extração das imagens do arquivo 3D - LFD
-    output_directory = os.getenv("OUTPUT_DIRECTORY")
-    input_directory = os.getenv("INPUT_DIRECTORY")
+#Inicializa a classe
+lfd_catcher = MathPartProcess()
 
-    #Inicializa a classe
-    lfd_catcher = MathPartProcess()
+#Inicializa o classificador
+classifier = STLPartClassifier()
 
-    #Executa o método
-    lfd_catcher.execute_render(input_directory, output_directory, views=2)
+#Executa o método
+#A bounding box irá iterar no diretório com as peças .STL e irá extrair os dados do modelo 3D
+#A saida do Bounding é uma lista de dicionários com os dados de cada peça
+bounding = lfd_catcher.execute_render(input_directory, output_directory, views=2)
 
-    #Realiza o Split Data do Dataset
-    dataset_dir = os.getenv("DATASET_DIR")
-    split_data = DatasetSplitter()
+#Lista os itens presentes no diretório
+lfd = os.listdir(output_directory)
 
-    #Inicializa as variaveis train_dir e validation_dir com os caminhos de treino e validação
-    train_dir, validation_dir = split_data.split_data(dataset_dir)
+#Inicializa a lista de classificações
+list_classification = []
 
-    if not check_dir(train_dir):
-        raise RuntimeError(f"Diretório de treino não existe ou está vazio: {train_dir}")
+#Laço para iterar nas imagens geradas pelo lfd
+for part in range(len(lfd)):
+    #Monta os caminhos de cada uma das peças
+    path_part = os.path.join(output_directory, lfd[part])
 
-    if not check_dir(validation_dir):
-        raise RuntimeError(f"Diretório de validação não existe ou está vazio: {validation_dir}")
+    #Executa a predição de cada uma das peças
+    classes = classifier.model_predict(path_part)
+    list_classification.append(classes)
 
-    print(f"Train dir: {train_dir}, Validation dir: {validation_dir}")
-
-    #Realiza o treino do modelo e salva o modelo.h5
-    classifier = STLPartClassifier(training_dir=train_dir, validation_dir=validation_dir)
-    classifier.train_process(train_dir)
-    classifier.validation_process()
-    classifier.model_architecture()
-    classifier.model_fit()
-    classifier.auditory()
-
-#Realiza a classificação das peças geradas
+print(bounding)
+print(list_classification)
 
 
-'''
-05/10/2025 -> Finalizado a estrutura de treino. Agora é necessário seguir com as etapas e depois é necessário melhorar o resultado
-Atualmente accuracy em 0.76
 
-Antes de tudo abaixo:
-    1. É necessário revisar a classe data_split, pois a mesma precisa ser ajustada para ler o dataset através das variáveis globais
-    em seguida deve criar e separar os arquivos de imagens nos diretórios dentro de src/data/data_process
-
-    2. Após isso, garanta que estes diretórios estarão configurados como variáveis globais dentro da classe classificadora
-
-    3. Garanta também que a pasta destino dos arquivos lidos pela classe 'MathPartProcess' estão sendo salvos em um diretório isolado
-    e com varaiável global definida dentro do .env
-
-Depois que ajustar as etapas anteriores, pode seguir essas etapas, pois serão necessárias
-A partir daqui o algoritmo deve iterar em "OUTPUT_DIRECTORY" e realizar o fit() e depois o predict() de cada um dos arquivos
-
-Após a clissificação, o algoritmo deve extrair os valores de bouding box de cada um dor produtos]
-Após a etapa anterior o algoritmo deve extrair os metadados dos arquivos
-Após o anterior o algoritmo deve tratar esses dados e organizalos em um dataframe
-Após realizar a etapa anterior o algoritmo deve subir esses dados em um banco PostgreSQL
-'''

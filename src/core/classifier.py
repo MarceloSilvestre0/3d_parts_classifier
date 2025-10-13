@@ -10,7 +10,8 @@ from keras.models import load_model
 import numpy as np
 import matplotlib.pyplot as plt
 from glob import glob
-
+import os
+from dotenv import load_dotenv
 from tensorflow.keras.applications import VGG16
 from tensorflow.keras.layers import GlobalAveragePooling2D, Dense, Dropout
 from tensorflow.keras.models import Model
@@ -20,8 +21,9 @@ class STLPartClassifier():
     def __init__(self, img_width: int = 256, img_height: int = 256,
                  batch_size: int = 32, epochs: int = 100,
                  validation_dir: str = "", training_dir: str = "",
-                 model:str = "CNN_model.h5", MODEL_DIR:str = "", verbose: int = 1):
+                 model:str = "CNN_model.h5", verbose: int = 1):
         
+        load_dotenv()
         self.img_width = img_width
         self.img_height = img_height
         self.batch_size = batch_size
@@ -29,9 +31,11 @@ class STLPartClassifier():
         self.num_classes = len(glob(training_dir+"/*"))
         self.val_dir = validation_dir
         self.train_dir = training_dir
+        self.model_save_path = os.getenv("MODEL_DIR")
         self.model_name = model
-        self.model_save_path = MODEL_DIR
+        self.model_path = os.path.join(self.model_save_path, self.model_name)
         self.verbose = verbose
+        
 
     '''
     Esta função tem como objetivo realizar o gerador de treinos do modelo
@@ -76,7 +80,6 @@ class STLPartClassifier():
 
     def model_architecture(self):
         self.callback = EarlyStopping(monitor='val_loss', patience=100, verbose=self.verbose, restore_best_weights=True)
-        self.model_path = self.model_save_path + self.model_name
         self.checkpoint_model = ModelCheckpoint(self.model_path, monitor='val_accuracy', verbose=self.verbose, save_best_only=True)
 
         # Carrega o backbone pré-treinado
@@ -152,7 +155,8 @@ class STLPartClassifier():
         self.image_result = np.expand_dims(image_result, axis=0)
         return self.image_result
     
-    def model_predict(self, png_path: str = "", classes: list = []):
+    def model_predict(self, png_path: str = ""):
+        classes = ["Bishop","King","Knight","Pawn","Queen","Rook"]
         model = load_model(self.model_path) #inserir no execute
         image = png_path
         image_prepare = self.prepare_image(image)
