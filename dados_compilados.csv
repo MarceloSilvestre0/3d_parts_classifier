@@ -1,0 +1,7 @@
+Nome;Classe;Largura (X);Altura (Y);Comprimento (Z)
+bishop_ref.stl;Bishop;40.0;40.0;76.0
+king_ref.stl;King;45.0;45.0;95.0
+knight_ref.stl;Knight;38.0;38.0;71.0
+pawn_ref.stl;Pawn;28.0;28.0;48.0
+queen_ref.stl;Bishop;43.0;43.0;85.0
+rock_ref.stl;Rook;36.0;36.0;67.0
