@@ -1,4 +1,4 @@
-<p align="center"> <img src="https://i.pinimg.com/originals/f6/fa/32/f6fa321ae32a49735cb21dcaccdc378b.gif" alt="Imagem"></a> </p>
+<p align="center"> <img src="https://i.pinimg.com/originals/ef/54/5f/ef545f494ed78ab3db41f2398f9a1859.gif" alt="Imagem"></a> </p>
 
 ## 🎲 Automatização da Classificação e Análise Espacial de Peças de Xadrez em Modelos 3D STL com Redes Neurais Convolucionais
 
